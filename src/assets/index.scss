@@ -1,3 +1,12 @@
+@use './variables';
+@import url('https://fonts.googleapis.com/css?family=Poppins:400');
+
+html {
+    font-family: 'Poppins', sans-serif;
+    background-color: variables.$color-primary-1;
+    color: variables.$color-primary-5;
+}
+
 html,
 body,
 #root {
@@ -9,4 +18,63 @@ body,
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+h1 {
+    font-size: variables.$font-size-h1;
+}
+
+h2 {
+    font-size: variables.$font-size-h2;
+}
+
+h3 {
+    font-size: variables.$font-size-h3;
+}
+
+p {
+    font-size: variables.$font-size-p;
+}
+
+@mixin inputBase {
+    padding: variables.$spacing-1 variables.$spacing-4;
+    border-radius: variables.$spacing-1;
+    border: 2px solid variables.$color-primary-3;
+    outline: none;
+}
+
+input {
+    @include inputBase;
+    font-size: variables.$font-size-p;
+    display: block;
+    width: 100%;
+    background-color: variables.$color-primary-2;
+
+    &::placeholder {
+        color: variables.$color-primary-4;
+    }
+}
+
+button {
+    @include inputBase;
+    font-size: variables.$font-size-p;
+    border-color: variables.$color-accent-1;
+    background-color: variables.$color-accent-1;
+    cursor: pointer;
+    color: variables.$color-primary-5;
+
+    &:hover {
+        border-color: variables.$color-accent-2;
+        background-color: variables.$color-accent-2;
+    }
+}
+
+a {
+    color: variables.$color-accent-1;
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover {
+        color: variables.$color-accent-2;
+    }
 }
