@@ -1,0 +1,26 @@
+@use '../../assets/variables';
+
+.table {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    background-color: variables.$color-primary-4;
+}
+
+.table-cell {
+    background-color: variables.$color-primary-2;
+    aspect-ratio: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: not-allowed;
+
+    &.can-click-it {
+        cursor: pointer;
+
+        &:hover {
+            background-color: variables.$color-primary-3;
+        }
+    }
+}
