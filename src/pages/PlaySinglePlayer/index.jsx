@@ -32,6 +32,9 @@ export default function PlaySinglePlayerPage() {
                         {gameStatus == 'opponent-won' ? 'You lost' : 'You won'}
                     </h1>
                     <button onClick={playAgain}>Play again</button>
+                    <p>
+                        Or <a href="/">return to lobby</a>
+                    </p>
                 </>
             )}
 
