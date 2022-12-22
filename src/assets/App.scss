@@ -1,0 +1,27 @@
+@use './variables';
+
+.app {
+    background: #dfdfdf;
+    border-radius: variables.$spacing-2;
+    padding: variables.$spacing-6;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 20px;
+}
+
+@media only screen and (min-width: variables.$screen-2) {
+    .app {
+        width: 66%;
+        margin: 40px 20px;
+    }
+}
+
+@media only screen and (min-width: variables.$screen-4) {
+    .app {
+        width: 33%;
+    }
+}
+
+.app > :not(:last-child) {
+    margin-bottom: variables.$spacing-2;
+}
