@@ -9,6 +9,7 @@ export default function genGameData() {
             playerTurn: (genRandomNumber(1) % 2) + 1,
             winner: null,
             gameStatus: 'waiting-for-opponent',
+            playerRestarting: null,
         },
     }
 }

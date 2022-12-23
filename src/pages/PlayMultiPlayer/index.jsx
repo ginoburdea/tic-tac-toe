@@ -5,8 +5,27 @@ import ReturnToLobbyLink from '../../components/ReturnToLobbyLink'
 import Table from '../../components/Table'
 import batchesOf from '../../utils/batchesOf'
 import { roomsCollection } from '../../utils/firebase'
+import genGameData from '../../utils/genGameData'
 
-const playAgain = async () => {}
+const playAgain = async (roomId, playerId, gameStatus) => {
+    const { gameData } = genGameData()
+
+    const updates = {
+        cells: gameData.cells,
+        playerTurn: gameData.playerTurn,
+        winner: gameData.winner,
+    }
+
+    if (gameStatus === 'someone-won') {
+        updates.gameStatus = 'waiting-for-restart'
+        updates.playerRestarting = playerId
+    } else {
+        updates.gameStatus = 'playing'
+        updates.playerRestarting = gameData.playerRestarting
+    }
+
+    await setDoc(doc(roomsCollection, roomId), updates, { merge: true })
+}
 
 export const getRoomData = async ({ params }) => {
     const roomRef = doc(roomsCollection, params.roomId)
@@ -68,6 +87,7 @@ export default function PlayMultiPlayerPage() {
     const [playerTurn, setPlayerTurn] = useState(null)
     const [gameStatus, setGameStatus] = useState('')
     const [winner, setWinner] = useState(null)
+    const [playerRestarting, setPlayerRestarting] = useState(null)
 
     useEffect(() => {
         localStorage.setItem('playerId', playerId)
@@ -81,6 +101,7 @@ export default function PlayMultiPlayerPage() {
             setPlayerTurn(roomData.playerTurn)
             setGameStatus(roomData.gameStatus)
             setWinner(roomData.winner)
+            setPlayerRestarting(roomData.playerRestarting)
         })
 
         return unsubscribe
@@ -107,7 +128,7 @@ export default function PlayMultiPlayerPage() {
 
     return (
         <>
-            {gameStatus == 'playing' && (
+            {gameStatus === 'playing' && (
                 <>
                     <Table
                         isPlayerTurn={playerTurn === playerId}
@@ -122,10 +143,36 @@ export default function PlayMultiPlayerPage() {
                 </>
             )}
 
-            {gameStatus == 'someone-won' && (
+            {(gameStatus === 'someone-won' ||
+                gameStatus === 'waiting-for-restart') && (
                 <>
                     <h1>{winner === playerId ? 'You won' : 'You lost'}</h1>
-                    <button onClick={playAgain}>Play again</button>
+                    {(gameStatus !== 'waiting-for-restart' ||
+                        (gameStatus === 'waiting-for-restart' &&
+                            playerRestarting !== playerId)) && (
+                        <button
+                            onClick={() =>
+                                playAgain(roomId, playerId, gameStatus)
+                            }>
+                            Play again
+                        </button>
+                    )}
+
+                    {gameStatus === 'waiting-for-restart' &&
+                        playerRestarting !== playerId && (
+                            <p>
+                                You've been challenged to another match. Click
+                                the button above to start!
+                            </p>
+                        )}
+
+                    {gameStatus === 'waiting-for-restart' &&
+                        playerRestarting === playerId && (
+                            <p>
+                                Waiting for your opponent to accept the
+                                restart...
+                            </p>
+                        )}
                     <p>
                         Or <ReturnToLobbyLink roomId={roomId} />
                     </p>
