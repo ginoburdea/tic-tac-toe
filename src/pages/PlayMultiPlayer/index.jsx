@@ -123,7 +123,6 @@ export default function PlayMultiPlayerPage() {
         }
 
         await setDoc(doc(roomsCollection, roomId), updatedData, { merge: true })
-        navigate(location.pathname)
     }
 
     return (
