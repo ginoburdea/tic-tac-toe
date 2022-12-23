@@ -1,11 +1,7 @@
 import { doc, getDoc, onSnapshot, setDoc } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
-import {
-    redirect,
-    useLoaderData,
-    useParams,
-    useNavigate,
-} from 'react-router-dom'
+import { useLoaderData, useParams, useNavigate } from 'react-router-dom'
+import ReturnToLobbyLink from '../../components/ReturnToLobbyLink'
 import Table from '../../components/Table'
 import batchesOf from '../../utils/batchesOf'
 import { roomsCollection } from '../../utils/firebase'
@@ -131,7 +127,7 @@ export default function PlayMultiPlayerPage() {
                     <h1>{winner === playerId ? 'You won' : 'You lost'}</h1>
                     <button onClick={playAgain}>Play again</button>
                     <p>
-                        Or <a href="/">return to lobby</a>
+                        Or <ReturnToLobbyLink roomId={roomId} />
                     </p>
                 </>
             )}
@@ -141,7 +137,7 @@ export default function PlayMultiPlayerPage() {
                     <h1>Room id: {roomId}</h1>
                     <p>Share the room id with a friend to play together</p>
                     <p>
-                        Or <a href="/">return to lobby</a>
+                        Or <ReturnToLobbyLink roomId={roomId} />
                     </p>
                 </>
             )}
