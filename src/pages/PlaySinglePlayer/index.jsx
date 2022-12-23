@@ -8,36 +8,33 @@ const markCell = async cellIndex => {
 
 export default function PlaySinglePlayerPage() {
     /**
-     * @type {'opponents-turn', 'your-turn', 'opponent-won', 'you-won', 'waiting-for-opponent'}
+     * @type {'someone-won', 'playing'}
      */
-    const gameStatus = 'opponents-turn'
+    const gameStatus = 'playing'
     const cells = ['x', null, 'o', null, 'x', 'o', null, 'o', 'x']
 
     return (
         <>
-            {(gameStatus == 'opponents-turn' || gameStatus == 'your-turn') && (
+            {gameStatus == 'playing' && (
                 <>
                     <Table cells={cells} onCellClick={markCell} />
                     <p>
-                        {gameStatus === 'opponents-turn'
-                            ? "It's your opponent's turn"
-                            : "It's your turn"}
+                        {playerTurn === playerId
+                            ? "It's your turn"
+                            : "It's your opponent's turn"}
                     </p>
                 </>
             )}
 
-            {(gameStatus == 'opponent-won' || gameStatus == 'you-won') && (
+            {gameStatus == 'someone-won' && (
                 <>
-                    <h1>
-                        {gameStatus == 'opponent-won' ? 'You lost' : 'You won'}
-                    </h1>
+                    <h1>{winner === playerId ? 'You won' : 'You lost'}</h1>
                     <button onClick={playAgain}>Play again</button>
                     <p>
                         Or <a href="/">return to lobby</a>
                     </p>
                 </>
             )}
-
             {/* {gameStatus === 'waiting-for-opponent' && <></>} */}
         </>
     )

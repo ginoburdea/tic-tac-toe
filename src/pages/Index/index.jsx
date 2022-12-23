@@ -1,12 +1,25 @@
+import { doc, setDoc } from 'firebase/firestore'
 import '../../assets/utils.scss'
+import { roomsCollection } from '../../utils/firebase'
+import { useNavigate } from 'react-router-dom'
+import genRandomNumber from '../../utils/genRandomNumber'
+import genGameData from '../../utils/genGameData'
 
 const playSinglePlayer = async () => {}
 
 const joinRoom = async () => {}
 
-const createRoom = async () => {}
-
 export default function IndexPage() {
+    const navigate = useNavigate()
+
+    const createRoom = async () => {
+        const { roomId, gameData } = genGameData()
+
+        await setDoc(doc(roomsCollection, roomId), gameData)
+
+        navigate(`/play-multi-player/${roomId}`)
+    }
+
     return (
         <>
             <h1>Tic-tac-toe</h1>
