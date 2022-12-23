@@ -11,7 +11,7 @@ export default function PlaySinglePlayerPage() {
      * @type {'someone-won', 'playing'}
      */
     const gameStatus = 'playing'
-    const cells = ['x', null, 'o', null, 'x', 'o', null, 'o', 'x']
+    const cells = [1, null, 2, null, 1, 2, null, 2, 1]
 
     return (
         <>

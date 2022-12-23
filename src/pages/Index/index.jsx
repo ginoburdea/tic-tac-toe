@@ -14,7 +14,7 @@ export default function IndexPage() {
 
     const createRoom = async () => {
         const { roomId, gameData } = genGameData()
-
+        
         await setDoc(doc(roomsCollection, roomId), gameData)
 
         navigate(`/play-multi-player/${roomId}`)

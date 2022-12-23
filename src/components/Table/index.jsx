@@ -10,7 +10,7 @@ export default function Table({ cells, onCellClick }) {
                     className={`table-cell ${!cell && 'can-click-it'}`}
                     key={index}
                     onClick={() => onCellClick(index)}>
-                    <h1>{cell}</h1>
+                    {cell && <h1>{cell === 1 ? 'x' : 'o'}</h1>}
                 </div>
             ))}
         </div>
@@ -18,6 +18,6 @@ export default function Table({ cells, onCellClick }) {
 }
 
 Table.propTypes = {
-    cells: PropTypes.arrayOf(PropTypes.oneOf(['x', 'o', null])).isRequired,
+    cells: PropTypes.arrayOf(PropTypes.oneOf([1, 2, null])).isRequired,
     onCellClick: PropTypes.func.isRequired,
 }

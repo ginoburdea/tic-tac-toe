@@ -1,32 +1,47 @@
 import { doc, getDoc, increment, setDoc } from 'firebase/firestore'
-import { redirect, useLoaderData } from 'react-router-dom'
+import { redirect, useLoaderData, useNavigate } from 'react-router-dom'
 import Table from '../../components/Table'
 import { roomsCollection } from '../../utils/firebase'
 
 const playAgain = async () => {}
-
-const markCell = async cellIndex => {
-    console.log(cellIndex)
-}
 
 export const getRoomData = async ({ params }) => {
     const roomDoc = doc(roomsCollection, params.roomId)
     const roomSnap = await getDoc(roomDoc)
     if (!roomSnap.exists()) throw redirect('/')
 
+    const roomId = roomSnap.id
     const roomData = roomSnap.data()
     const gameStatus =
         roomData.playersCount === 0 ? 'waiting-for-opponent' : 'playing'
-    const playerId = roomData.playersCount + 1
+
+    const playerIds = JSON.parse(localStorage.getItem('playerIds')) || {}
+    console.log(playerIds)
+
+    let playerId
+    if (playerIds[roomId]) {
+        playerId = playerIds[roomId]
+    } else {
+        // something is wrong here
+        playerId = roomData.playersCount + 1
+        localStorage.setItem(
+            'playerIds',
+            JSON.stringify({ ...playerIds, [roomId]: playerId })
+        )
+    }
 
     await setDoc(
         roomDoc,
-        { playersCount: increment(1), gameStatus },
+        {
+            playersCount:
+                roomData.playersCount < 2 ? increment(1) : increment(0),
+            gameStatus,
+        },
         { merge: true }
     )
 
     return {
-        roomId: roomSnap.id,
+        roomId,
         cells: roomData.cells,
         playerTurn: roomData.playerTurn,
         gameStatus,
@@ -36,6 +51,13 @@ export const getRoomData = async ({ params }) => {
 
 export default function PlayMultiPlayerPage() {
     const { roomId, cells, playerTurn, gameStatus, playerId } = useLoaderData()
+    const navigate = useNavigate()
+
+    const markCell = async cellIndex => {
+        cells[cellIndex] = playerId
+        await setDoc(doc(roomsCollection, roomId), { cells }, { merge: true })
+        navigate(location.pathname)
+    }
 
     return (
         <>
