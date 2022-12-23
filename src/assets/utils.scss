@@ -1,5 +1,9 @@
 @use './variables';
 
+.color-danger {
+    color: variables.$color-danger;
+}
+
 .display-flex {
     display: flex;
 }

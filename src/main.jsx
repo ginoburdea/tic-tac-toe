@@ -4,28 +4,34 @@ import App from './App'
 import './assets/reset.scss'
 import './assets/index.scss'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import IndexPage from './pages/Index'
+import IndexPage, { indexPageAction } from './pages/Index'
 import PlaySinglePlayerPage from './pages/PlaySinglePlayer'
 import PlayMultiPlayerPage, { getRoomData } from './pages/PlayMultiPlayer'
+import Error from './components/Error/Error'
 
 const router = createBrowserRouter([
     {
         path: '/',
         element: <App />,
         children: [
-            { index: true, element: <IndexPage /> },
+            {
+                index: true,
+                element: <IndexPage />,
+                action: indexPageAction,
+            },
             { path: 'play-single-player', element: <PlaySinglePlayerPage /> },
             {
                 path: 'play-multi-player/:roomId',
                 element: <PlayMultiPlayerPage />,
                 loader: getRoomData,
+                errorElement: <Error />,
             },
         ],
     },
 ])
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-    <React.StrictMode>
+    <>
         <RouterProvider router={router} />
-    </React.StrictMode>
+    </>
 )

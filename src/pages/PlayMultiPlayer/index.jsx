@@ -1,56 +1,55 @@
-import { doc, getDoc, increment, setDoc } from 'firebase/firestore'
-import { redirect, useLoaderData, useNavigate } from 'react-router-dom'
+import { doc, getDoc, increment, onSnapshot, setDoc } from 'firebase/firestore'
+import { useEffect, useState } from 'react'
+import { redirect, useLoaderData, useParams, useNavigate } from 'react-router-dom'
 import Table from '../../components/Table'
 import { roomsCollection } from '../../utils/firebase'
 
 const playAgain = async () => {}
 
 export const getRoomData = async ({ params }) => {
-    const roomDoc = doc(roomsCollection, params.roomId)
-    const roomSnap = await getDoc(roomDoc)
-    if (!roomSnap.exists()) throw redirect('/')
+    const roomRef = doc(roomsCollection, params.roomId)
+    const roomSnap = await getDoc(roomRef)
+    if (!roomSnap.exists()) throw new Error('Room not found')
 
     const roomId = roomSnap.id
     const roomData = roomSnap.data()
-    const gameStatus =
-        roomData.playersCount === 0 ? 'waiting-for-opponent' : 'playing'
+    if (roomData.playersCount >= 2) throw new Error('Room is full')
 
-    const playerIds = JSON.parse(localStorage.getItem('playerIds')) || {}
-    console.log(playerIds)
-
-    let playerId
-    if (playerIds[roomId]) {
-        playerId = playerIds[roomId]
-    } else {
-        // something is wrong here
-        playerId = roomData.playersCount + 1
-        localStorage.setItem(
-            'playerIds',
-            JSON.stringify({ ...playerIds, [roomId]: playerId })
-        )
-    }
-
+    const updatedPlayersCount = roomData.playersCount + 1
     await setDoc(
-        roomDoc,
+        roomRef,
         {
-            playersCount:
-                roomData.playersCount < 2 ? increment(1) : increment(0),
-            gameStatus,
+            playersCount: updatedPlayersCount,
+            gameStatus:
+                updatedPlayersCount === 2 ? 'playing' : 'waiting-for-opponent',
         },
         { merge: true }
     )
 
-    return {
-        roomId,
-        cells: roomData.cells,
-        playerTurn: roomData.playerTurn,
-        gameStatus,
-        playerId,
-    }
+    return { playerId: roomData.playersCount + 1 }
 }
 
 export default function PlayMultiPlayerPage() {
-    const { roomId, cells, playerTurn, gameStatus, playerId } = useLoaderData()
+    const { playerId } = useLoaderData()
+    const { roomId } = useParams()
+
+    const [cells, setCells] = useState([])
+    const [playerTurn, setPlayerTurn] = useState(0)
+    const [gameStatus, setGameStatus] = useState('')
+
+    useEffect(() => {
+        const roomRef = doc(roomsCollection, roomId)
+        const unsubscribe = onSnapshot(roomRef, roomSnap => {
+            const roomData = roomSnap.data()
+            console.log(roomData)
+
+            setCells(roomData.cells)
+            setPlayerTurn(roomData.playerTurn)
+            setGameStatus(roomData.gameStatus)
+        })
+
+        return unsubscribe
+    }, [])
     const navigate = useNavigate()
 
     const markCell = async cellIndex => {
