@@ -1,7 +1,13 @@
-import { doc, getDoc, increment, onSnapshot, setDoc } from 'firebase/firestore'
+import { doc, getDoc, onSnapshot, setDoc } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
-import { redirect, useLoaderData, useParams, useNavigate } from 'react-router-dom'
+import {
+    redirect,
+    useLoaderData,
+    useParams,
+    useNavigate,
+} from 'react-router-dom'
 import Table from '../../components/Table'
+import batchesOf from '../../utils/batchesOf'
 import { roomsCollection } from '../../utils/firebase'
 
 const playAgain = async () => {}
@@ -11,22 +17,51 @@ export const getRoomData = async ({ params }) => {
     const roomSnap = await getDoc(roomRef)
     if (!roomSnap.exists()) throw new Error('Room not found')
 
-    const roomId = roomSnap.id
     const roomData = roomSnap.data()
+    const playerId = +localStorage.getItem('playerId')
+    const roomId = localStorage.getItem('roomId')
+
+    const playerHasAnId = roomId === params.roomId && playerId
+    if (playerHasAnId) return { playerId }
+
     if (roomData.playersCount >= 2) throw new Error('Room is full')
 
-    const updatedPlayersCount = roomData.playersCount + 1
-    await setDoc(
-        roomRef,
-        {
-            playersCount: updatedPlayersCount,
-            gameStatus:
-                updatedPlayersCount === 2 ? 'playing' : 'waiting-for-opponent',
-        },
-        { merge: true }
-    )
+    localStorage.setItem('playerId', roomData.playersCount + 1)
+    localStorage.setItem('roomId', params.roomId)
 
-    return { playerId: roomData.playersCount + 1 }
+    const playersCount = roomData.playersCount + 1
+    const gameStatus = playersCount === 2 ? 'playing' : 'waiting-for-opponent'
+    await setDoc(roomRef, { playersCount, gameStatus }, { merge: true })
+
+    return { playerId: playersCount }
+}
+
+const getWinner = cells => {
+    for (let k of [1, 2]) {
+        const horizontalRows = batchesOf(cells, 3)
+        for (const row of horizontalRows) {
+            if (row.every(cell => cell === k)) return k
+        }
+
+        const verticalRows = []
+        for (let i = 3 - 1; i >= 0; i--) {
+            verticalRows.push(cells.filter((cell, index) => index % 3 === i))
+        }
+        for (const row of verticalRows) {
+            if (row.every(cell => cell === k)) return k
+        }
+
+        const diagonalCells = []
+        for (let i = 0; i < 3; i++) diagonalCells.push(cells[i * 3 + i])
+        for (let i = 1; i <= 3; i++) diagonalCells.push(cells[i * 3 - i])
+
+        const diagonalRows = batchesOf(diagonalCells, 3)
+        for (const row of diagonalRows) {
+            if (row.every(cell => cell === k)) return k
+        }
+    }
+
+    return null
 }
 
 export default function PlayMultiPlayerPage() {
@@ -34,18 +69,22 @@ export default function PlayMultiPlayerPage() {
     const { roomId } = useParams()
 
     const [cells, setCells] = useState([])
-    const [playerTurn, setPlayerTurn] = useState(0)
+    const [playerTurn, setPlayerTurn] = useState(null)
     const [gameStatus, setGameStatus] = useState('')
+    const [winner, setWinner] = useState(null)
 
     useEffect(() => {
+        localStorage.setItem('playerId', playerId)
+        localStorage.setItem('roomId', roomId)
+
         const roomRef = doc(roomsCollection, roomId)
         const unsubscribe = onSnapshot(roomRef, roomSnap => {
             const roomData = roomSnap.data()
-            console.log(roomData)
 
             setCells(roomData.cells)
             setPlayerTurn(roomData.playerTurn)
             setGameStatus(roomData.gameStatus)
+            setWinner(roomData.winner)
         })
 
         return unsubscribe
@@ -53,8 +92,20 @@ export default function PlayMultiPlayerPage() {
     const navigate = useNavigate()
 
     const markCell = async cellIndex => {
-        cells[cellIndex] = playerId
-        await setDoc(doc(roomsCollection, roomId), { cells }, { merge: true })
+        cells[cellIndex] = +playerId
+
+        const winner = getWinner(cells)
+
+        const updatedData = {
+            cells,
+            playerTurn: playerId === 1 ? 2 : 1,
+        }
+        if (winner) {
+            updatedData.winner = winner
+            updatedData.gameStatus = 'someone-won'
+        }
+
+        await setDoc(doc(roomsCollection, roomId), updatedData, { merge: true })
         navigate(location.pathname)
     }
 
@@ -62,7 +113,11 @@ export default function PlayMultiPlayerPage() {
         <>
             {gameStatus == 'playing' && (
                 <>
-                    <Table cells={cells} onCellClick={markCell} />
+                    <Table
+                        isPlayerTurn={playerTurn === playerId}
+                        cells={cells}
+                        onCellClick={markCell}
+                    />
                     <p>
                         {playerTurn === playerId
                             ? "It's your turn"

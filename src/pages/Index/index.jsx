@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { doc, setDoc } from 'firebase/firestore'
 import '../../assets/utils.scss'
 import { roomsCollection } from '../../utils/firebase'
 import {
