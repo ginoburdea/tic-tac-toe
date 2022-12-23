@@ -1,5 +1,6 @@
-import { doc, getDoc, increment, setDoc } from 'firebase/firestore'
-import { redirect, useLoaderData } from 'react-router-dom'
+import { doc, getDoc, increment, onSnapshot, setDoc } from 'firebase/firestore'
+import { useEffect, useState } from 'react'
+import { redirect, useLoaderData, useParams } from 'react-router-dom'
 import Table from '../../components/Table'
 import { roomsCollection } from '../../utils/firebase'
 
@@ -10,32 +11,48 @@ const markCell = async cellIndex => {
 }
 
 export const getRoomData = async ({ params }) => {
-    const roomDoc = doc(roomsCollection, params.roomId)
-    const roomSnap = await getDoc(roomDoc)
-    if (!roomSnap.exists()) throw redirect('/')
+    const roomRef = doc(roomsCollection, params.roomId)
+    const roomSnap = await getDoc(roomRef)
+    if (!roomSnap.exists()) throw new Error('Room not found')
 
     const roomData = roomSnap.data()
-    const gameStatus =
-        roomData.playersCount === 0 ? 'waiting-for-opponent' : 'playing'
-    const playerId = roomData.playersCount + 1
+    if (roomData.playersCount >= 2) throw new Error('Room is full')
 
+    const updatedPlayersCount = roomData.playersCount + 1
     await setDoc(
-        roomDoc,
-        { playersCount: increment(1), gameStatus },
+        roomRef,
+        {
+            playersCount: updatedPlayersCount,
+            gameStatus:
+                updatedPlayersCount === 2 ? 'playing' : 'waiting-for-opponent',
+        },
         { merge: true }
     )
 
-    return {
-        roomId: roomSnap.id,
-        cells: roomData.cells,
-        playerTurn: roomData.playerTurn,
-        gameStatus,
-        playerId,
-    }
+    return { playerId: roomData.playersCount + 1 }
 }
 
 export default function PlayMultiPlayerPage() {
-    const { roomId, cells, playerTurn, gameStatus, playerId } = useLoaderData()
+    const { playerId } = useLoaderData()
+    const { roomId } = useParams()
+
+    const [cells, setCells] = useState([])
+    const [playerTurn, setPlayerTurn] = useState(0)
+    const [gameStatus, setGameStatus] = useState('')
+
+    useEffect(() => {
+        const roomRef = doc(roomsCollection, roomId)
+        const unsubscribe = onSnapshot(roomRef, roomSnap => {
+            const roomData = roomSnap.data()
+            console.log(roomData)
+
+            setCells(roomData.cells)
+            setPlayerTurn(roomData.playerTurn)
+            setGameStatus(roomData.gameStatus)
+        })
+
+        return unsubscribe
+    }, [])
 
     return (
         <>
