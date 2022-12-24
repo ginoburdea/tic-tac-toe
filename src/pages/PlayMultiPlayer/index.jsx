@@ -10,16 +10,14 @@ import genGameData from '../../utils/genGameData'
 const playAgain = async (roomId, playerId, gameStatus) => {
     const { gameData } = genGameData()
 
-    const updates = {
-        cells: gameData.cells,
-        playerTurn: gameData.playerTurn,
-        winner: gameData.winner,
-    }
-
+    const updates = {}
     if (gameStatus === 'someone-won') {
         updates.gameStatus = 'waiting-for-restart'
         updates.playerRestarting = playerId
     } else {
+        updates.playerTurn = gameData.playerTurn
+        updates.winner = gameData.winner
+        updates.cells = gameData.cells
         updates.gameStatus = 'playing'
         updates.playerRestarting = gameData.playerRestarting
     }
