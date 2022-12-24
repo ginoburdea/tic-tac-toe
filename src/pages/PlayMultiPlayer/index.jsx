@@ -17,6 +17,8 @@ const playAgain = async (roomId, playerId, gameStatus) => {
     } else {
         updates.playerTurn = gameData.playerTurn
         updates.winner = gameData.winner
+        updates.winningCells = gameData.winningCells
+        updates.winningType = gameData.winningType
         updates.cells = gameData.cells
         updates.gameStatus = 'playing'
         updates.playerRestarting = gameData.playerRestarting
@@ -49,32 +51,77 @@ export const getRoomData = async ({ params }) => {
     return { playerId: playersCount }
 }
 
-const getWinner = cells => {
+const getWinningInfo = cells => {
+    const turnIntoValueAndIndex = (cellValue, originalIndex) => ({
+        cellValue,
+        originalIndex,
+    })
+    const returnOriginalIndexes = ({ originalIndex }) => originalIndex
+
     for (let k of [1, 2]) {
-        const horizontalRows = batchesOf(cells, 3)
+        const cellValuesEqualK = ({ cellValue }) => cellValue === k
+
+        const horizontalRows = batchesOf(cells.map(turnIntoValueAndIndex), 3)
         for (const row of horizontalRows) {
-            if (row.every(cell => cell === k)) return k
+            if (row.every(cellValuesEqualK))
+                return {
+                    winner: k,
+                    winningCells: row.map(returnOriginalIndexes),
+                    winningType: 'horizontal',
+                }
         }
 
-        const verticalRows = []
         for (let i = 3 - 1; i >= 0; i--) {
-            verticalRows.push(cells.filter((cell, index) => index % 3 === i))
-        }
-        for (const row of verticalRows) {
-            if (row.every(cell => cell === k)) return k
+            const verticalRow = cells
+                .map(turnIntoValueAndIndex)
+                .filter(({ originalIndex }) => originalIndex % 3 === i)
+
+            if (verticalRow.every(cellValuesEqualK))
+                return {
+                    winner: k,
+                    winningCells: verticalRow.map(returnOriginalIndexes),
+                    winningType: 'vertical',
+                }
         }
 
-        const diagonalCells = []
-        for (let i = 0; i < 3; i++) diagonalCells.push(cells[i * 3 + i])
-        for (let i = 1; i <= 3; i++) diagonalCells.push(cells[i * 3 - i])
+        const majorDiagonalRow = []
+        for (let i = 0; i < 3; i++) {
+            const index = i * 3 + i
 
-        const diagonalRows = batchesOf(diagonalCells, 3)
-        for (const row of diagonalRows) {
-            if (row.every(cell => cell === k)) return k
+            majorDiagonalRow.push({
+                cellValue: cells[index],
+                originalIndex: index,
+            })
+        }
+
+        if (majorDiagonalRow.every(cellValuesEqualK)) {
+            return {
+                winner: k,
+                winningCells: majorDiagonalRow.map(returnOriginalIndexes),
+                winningType: 'majorDiagonal',
+            }
+        }
+
+        const minorDiagonalRow = []
+        for (let i = 1; i <= 3; i++) {
+            const index = i * 3 - i
+
+            minorDiagonalRow.push({
+                cellValue: cells[index],
+                originalIndex: index,
+            })
+        }
+
+        if (minorDiagonalRow.every(cellValuesEqualK)) {
+            return {
+                winner: k,
+                winningCells: minorDiagonalRow.map(returnOriginalIndexes),
+                winningType: 'minorDiagonal',
+            }
         }
     }
 
-    return null
+    return { winner: null, winningCells: [], winningType: null }
 }
 
 export default function PlayMultiPlayerPage() {
@@ -86,6 +133,8 @@ export default function PlayMultiPlayerPage() {
     const [gameStatus, setGameStatus] = useState('')
     const [winner, setWinner] = useState(null)
     const [playerRestarting, setPlayerRestarting] = useState(null)
+    const [winningCells, setWinningCells] = useState([])
+    const [winningType, setWinningType] = useState(null)
 
     useEffect(() => {
         localStorage.setItem('playerId', playerId)
@@ -99,17 +148,18 @@ export default function PlayMultiPlayerPage() {
             setPlayerTurn(roomData.playerTurn)
             setGameStatus(roomData.gameStatus)
             setWinner(roomData.winner)
+            setWinningCells(roomData.winningCells)
+            setWinningType(roomData.winningType)
             setPlayerRestarting(roomData.playerRestarting)
         })
 
         return unsubscribe
     }, [])
-    const navigate = useNavigate()
 
     const markCell = async cellIndex => {
         cells[cellIndex] = +playerId
 
-        const winner = getWinner(cells)
+        const { winner, winningCells, winningType } = getWinningInfo(cells)
 
         const updatedData = {
             cells,
@@ -117,6 +167,8 @@ export default function PlayMultiPlayerPage() {
         }
         if (winner) {
             updatedData.winner = winner
+            updatedData.winningCells = winningCells
+            updatedData.winningType = winningType
             updatedData.gameStatus = 'someone-won'
         }
 
@@ -178,6 +230,8 @@ export default function PlayMultiPlayerPage() {
                         }
                         cells={cells}
                         onCellClick={markCell}
+                        winningCells={winningCells}
+                        winningType={winningType}
                     />
                 </>
             )}

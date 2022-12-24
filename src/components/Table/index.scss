@@ -9,11 +9,12 @@
 }
 
 .table-cell {
-    background-color: variables.$color-primary-2;
-    aspect-ratio: 1;
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
+    aspect-ratio: 1;
+    background-color: variables.$color-primary-2;
     cursor: not-allowed;
 
     &.can-click-it {
@@ -27,4 +28,11 @@
 
 .cell-icon {
     width: 50%;
+    position: absolute;
+}
+
+.line-icon {
+    stroke-opacity: 80%;
+    // stroke: variables.$color-accent-1;
+    // stroke-width: 5;
 }

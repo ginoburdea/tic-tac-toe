@@ -78,3 +78,9 @@ a {
         color: variables.$color-accent-2;
     }
 }
+
+svg {
+    height: auto;
+    width: 100%;
+    stroke: variables.$color-primary-5;
+}
