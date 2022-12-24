@@ -5,6 +5,7 @@ import { ReactComponent as OIcon } from '../../assets/o.svg'
 import { ReactComponent as LineIcon } from '../../assets/line.svg'
 import { ReactComponent as DiagonalLineIcon } from '../../assets/diagonalLine.svg'
 import PropTypes from 'prop-types'
+import { useMemo } from 'react'
 
 export default function Table({
     isPlayerTurn,
@@ -13,48 +14,50 @@ export default function Table({
     winningCells,
     winningType,
 }) {
+    const cellsData = useMemo(() => {
+        return cells.map((cell, index) => {
+            const userCanClickIt = !cell && isPlayerTurn
+            const CellIconComponent = cell === 1 ? XIcon : OIcon
+
+            let CellLineIcon = null
+            const isWinningCell = winningCells.indexOf(index) !== -1
+            if (isWinningCell) {
+                const CellLineIconComponent =
+                    winningType === 'minorDiagonal' ||
+                    winningType === 'majorDiagonal'
+                        ? DiagonalLineIcon
+                        : LineIcon
+
+                CellLineIcon = (
+                    <CellLineIconComponent
+                        className={`line-icon ${
+                            winningType === 'minorDiagonal' ||
+                            winningType === 'vertical'
+                                ? 'rotate-90'
+                                : ''
+                        }`}
+                    />
+                )
+            }
+
+            return {
+                className: `table-cell ${userCanClickIt ? 'can-click-it' : ''}`,
+                handleClick: userCanClickIt ? () => onCellClick(index) : null,
+                CellIcon: cell && <CellIconComponent className="cell-icon" />,
+                CellLineIcon,
+            }
+        })
+    }, [cells])
+
     return (
         <div className="table gap-1">
-            {cells.map((cell, index) => (
+            {cellsData.map((cellData, index) => (
                 <div
-                    className={`table-cell ${
-                        !cell && isPlayerTurn ? 'can-click-it' : ''
-                    }`}
-                    onClick={
-                        !cell && isPlayerTurn ? () => onCellClick(index) : null
-                    }
+                    className={cellData.className}
+                    onClick={cellData.handleClick}
                     key={index}>
-                    {cell &&
-                        (cell === 1 ? (
-                            <XIcon className="cell-icon" />
-                        ) : (
-                            <OIcon className="cell-icon" />
-                        ))}
-                    {winningCells.indexOf(index) !== -1 &&
-                        (winningType === 'horizontal' ||
-                        winningType === 'vertical' ? (
-                            <LineIcon
-                                className="line-icon"
-                                style={{
-                                    transform: `rotate(${
-                                        winningType === 'vertical'
-                                            ? '90deg'
-                                            : '0deg'
-                                    })`,
-                                }}
-                            />
-                        ) : (
-                            <DiagonalLineIcon
-                                className="line-icon"
-                                style={{
-                                    transform: `rotate(${
-                                        winningType === 'minorDiagonal'
-                                            ? '90deg'
-                                            : '0deg'
-                                    })`,
-                                }}
-                            />
-                        ))}
+                    {cellData.CellIcon}
+                    {cellData.CellLineIcon}
                 </div>
             ))}
         </div>
