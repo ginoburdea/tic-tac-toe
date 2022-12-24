@@ -1,5 +1,7 @@
 import './index.scss'
 import '../../assets/utils.scss'
+import { ReactComponent as XIcon } from '../../assets/x.svg'
+import { ReactComponent as OIcon } from '../../assets/o.svg'
 import PropTypes from 'prop-types'
 
 export default function Table({ isPlayerTurn, cells, onCellClick }) {
@@ -8,13 +10,18 @@ export default function Table({ isPlayerTurn, cells, onCellClick }) {
             {cells.map((cell, index) => (
                 <div
                     className={`table-cell ${
-                        !cell && isPlayerTurn && 'can-click-it'
+                        !cell && isPlayerTurn ? 'can-click-it' : ''
                     }`}
                     onClick={
                         !cell && isPlayerTurn ? () => onCellClick(index) : null
                     }
                     key={index}>
-                    {cell && <h1>{cell === 1 ? 'x' : 'o'}</h1>}
+                    {cell &&
+                        (cell === 1 ? (
+                            <XIcon className="cell-icon" />
+                        ) : (
+                            <OIcon className="cell-icon" />
+                        ))}
                 </div>
             ))}
         </div>

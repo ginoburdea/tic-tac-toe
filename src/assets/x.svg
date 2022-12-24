@@ -1,0 +1,5 @@
+<svg height="auto" width="100%" viewBox="0 0 100 100">
+    <line x1="5" y1="5" x2="95" y2="95" stroke="black" stroke-width="5" />
+    <line x1="95" y1="5" x2="5" y2="95" stroke="black" stroke-width="5" />
+</svg>
+ 

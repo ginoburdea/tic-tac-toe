@@ -127,24 +127,9 @@ export default function PlayMultiPlayerPage() {
 
     return (
         <>
-            {gameStatus === 'playing' && (
-                <>
-                    <Table
-                        isPlayerTurn={playerTurn === playerId}
-                        cells={cells}
-                        onCellClick={markCell}
-                    />
-                    <p>
-                        {playerTurn === playerId
-                            ? "It's your turn"
-                            : "It's your opponent's turn"}
-                    </p>
-                </>
-            )}
-
             {(gameStatus === 'someone-won' ||
                 gameStatus === 'waiting-for-restart') && (
-                <>
+                <div className="text-center mbc-3">
                     <h1>{winner === playerId ? 'You won' : 'You lost'}</h1>
                     {(gameStatus !== 'waiting-for-restart' ||
                         (gameStatus === 'waiting-for-restart' &&
@@ -175,6 +160,27 @@ export default function PlayMultiPlayerPage() {
                     <p>
                         Or <ReturnToLobbyLink roomId={roomId} />
                     </p>
+                </div>
+            )}
+
+            {(gameStatus === 'playing' ||
+                gameStatus === 'someone-won' ||
+                gameStatus === 'waiting-for-restart') && (
+                <>
+                    {gameStatus === 'playing' && (
+                        <h1 className="text-center text-bold">
+                            {playerTurn === playerId
+                                ? "It's your turn"
+                                : "It's your opponent's turn"}
+                        </h1>
+                    )}
+                    <Table
+                        isPlayerTurn={
+                            gameStatus === 'playing' && playerTurn === playerId
+                        }
+                        cells={cells}
+                        onCellClick={markCell}
+                    />
                 </>
             )}
 
