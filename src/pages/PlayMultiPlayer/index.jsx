@@ -4,6 +4,7 @@ import { useLoaderData, useParams } from 'react-router-dom'
 import Table from '../../components/Table'
 import { roomsCollection } from '../../utils/firebase'
 import markCell from '../../utils/markCell'
+import playAgain from './playAgain'
 import { PlayerTurnMessage } from './PlayerTurnMessage'
 import SomeoneWonMessage from './SomeoneWonMessage'
 import { WaitingForOpponentMessage } from './WaitingForOpponentMessage'
@@ -85,7 +86,9 @@ export default function PlayMultiPlayerPage() {
                     gameStatus={gameStatus}
                     playerIsRestarting={playerRestarting === playerId}
                     roomId={roomId}
-                    playerId={playerId}
+                    handleRestart={() =>
+                        playAgain(roomId, playerId, gameStatus)
+                    }
                 />
             )}
 

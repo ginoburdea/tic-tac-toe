@@ -3,6 +3,7 @@ import '../../assets/utils.scss'
 import { roomsCollection } from '../../utils/firebase'
 import {
     Form,
+    Link,
     redirect,
     useLocation,
     useNavigate,
@@ -27,7 +28,7 @@ export default function IndexPage() {
 
     const createRoom = async () => {
         const { roomId, gameData } = genGameData()
-        
+
         await setDoc(doc(roomsCollection, roomId), gameData)
 
         navigate(`/play-multi-player/${roomId}`)
@@ -39,7 +40,9 @@ export default function IndexPage() {
 
             <div className="mbc-2">
                 <h3>Play single-player</h3>
-                <button onClick={playSinglePlayer}>Play now</button>
+                <Link to={'/play-single-player'}>
+                    <button onClick={playSinglePlayer}>Play now</button>
+                </Link>
             </div>
 
             <div className="mbc-2">

@@ -27,9 +27,13 @@ export default function ReturnToLobbyLink({ roomId }) {
         navigate('/')
     }
 
-    return <a onClick={returnToLobby}>return to lobby</a>
+    return (
+        <a onClick={roomId ? returnToLobby : null} href={roomId ? null : '/'}>
+            return to lobby
+        </a>
+    )
 }
 
 ReturnToLobbyLink.propTypes = {
-    roomId: PropTypes.string.isRequired,
+    roomId: PropTypes.string,
 }
