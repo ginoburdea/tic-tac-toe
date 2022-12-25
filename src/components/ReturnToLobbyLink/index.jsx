@@ -11,6 +11,7 @@ export default function ReturnToLobbyLink({ roomId }) {
         const roomRef = doc(roomsCollection, roomId)
 
         const { gameData } = genGameData()
+        // eslint-disable-next-line
         const { playersCount, playerTurn, ...newGameData } = gameData
 
         await setDoc(
