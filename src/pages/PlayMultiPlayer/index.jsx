@@ -1,31 +1,12 @@
 import { doc, getDoc, onSnapshot, setDoc } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
-import { useLoaderData, useParams, useNavigate } from 'react-router-dom'
-import ReturnToLobbyLink from '../../components/ReturnToLobbyLink'
+import { useLoaderData, useParams } from 'react-router-dom'
 import Table from '../../components/Table'
-import batchesOf from '../../utils/batchesOf'
 import { roomsCollection } from '../../utils/firebase'
-import genGameData from '../../utils/genGameData'
-
-const playAgain = async (roomId, playerId, gameStatus) => {
-    const { gameData } = genGameData()
-
-    const updates = {}
-    if (gameStatus === 'someone-won') {
-        updates.gameStatus = 'waiting-for-restart'
-        updates.playerRestarting = playerId
-    } else {
-        updates.playerTurn = gameData.playerTurn
-        updates.winner = gameData.winner
-        updates.winningCells = gameData.winningCells
-        updates.winningType = gameData.winningType
-        updates.cells = gameData.cells
-        updates.gameStatus = 'playing'
-        updates.playerRestarting = gameData.playerRestarting
-    }
-
-    await setDoc(doc(roomsCollection, roomId), updates, { merge: true })
-}
+import markCell from '../../utils/markCell'
+import { PlayerTurnMessage } from './PlayerTurnMessage'
+import SomeoneWonMessage from './SomeoneWonMessage'
+import { WaitingForOpponentMessage } from './WaitingForOpponentMessage'
 
 export const getRoomData = async ({ params }) => {
     const roomRef = doc(roomsCollection, params.roomId)
@@ -49,79 +30,6 @@ export const getRoomData = async ({ params }) => {
     await setDoc(roomRef, { playersCount, gameStatus }, { merge: true })
 
     return { playerId: playersCount }
-}
-
-const getWinningInfo = cells => {
-    const turnIntoValueAndIndex = (cellValue, originalIndex) => ({
-        cellValue,
-        originalIndex,
-    })
-    const returnOriginalIndexes = ({ originalIndex }) => originalIndex
-
-    for (let k of [1, 2]) {
-        const cellValuesEqualK = ({ cellValue }) => cellValue === k
-
-        const horizontalRows = batchesOf(cells.map(turnIntoValueAndIndex), 3)
-        for (const row of horizontalRows) {
-            if (row.every(cellValuesEqualK))
-                return {
-                    winner: k,
-                    winningCells: row.map(returnOriginalIndexes),
-                    winningType: 'horizontal',
-                }
-        }
-
-        for (let i = 3 - 1; i >= 0; i--) {
-            const verticalRow = cells
-                .map(turnIntoValueAndIndex)
-                .filter(({ originalIndex }) => originalIndex % 3 === i)
-
-            if (verticalRow.every(cellValuesEqualK))
-                return {
-                    winner: k,
-                    winningCells: verticalRow.map(returnOriginalIndexes),
-                    winningType: 'vertical',
-                }
-        }
-
-        const majorDiagonalRow = []
-        for (let i = 0; i < 3; i++) {
-            const index = i * 3 + i
-
-            majorDiagonalRow.push({
-                cellValue: cells[index],
-                originalIndex: index,
-            })
-        }
-
-        if (majorDiagonalRow.every(cellValuesEqualK)) {
-            return {
-                winner: k,
-                winningCells: majorDiagonalRow.map(returnOriginalIndexes),
-                winningType: 'majorDiagonal',
-            }
-        }
-
-        const minorDiagonalRow = []
-        for (let i = 1; i <= 3; i++) {
-            const index = i * 3 - i
-
-            minorDiagonalRow.push({
-                cellValue: cells[index],
-                originalIndex: index,
-            })
-        }
-
-        if (minorDiagonalRow.every(cellValuesEqualK)) {
-            return {
-                winner: k,
-                winningCells: minorDiagonalRow.map(returnOriginalIndexes),
-                winningType: 'minorDiagonal',
-            }
-        }
-    }
-
-    return { winner: null, winningCells: [], winningType: null }
 }
 
 export default function PlayMultiPlayerPage() {
@@ -156,94 +64,39 @@ export default function PlayMultiPlayerPage() {
         return unsubscribe
     }, [])
 
-    const markCell = async cellIndex => {
-        cells[cellIndex] = +playerId
-
-        const { winner, winningCells, winningType } = getWinningInfo(cells)
-
-        const updatedData = {
-            cells,
-            playerTurn: playerId === 1 ? 2 : 1,
-        }
-        if (winner) {
-            updatedData.winner = winner
-            updatedData.winningCells = winningCells
-            updatedData.winningType = winningType
-            updatedData.gameStatus = 'someone-won'
-        }
-
-        await setDoc(doc(roomsCollection, roomId), updatedData, { merge: true })
-    }
-
     return (
         <>
             {(gameStatus === 'someone-won' ||
                 gameStatus === 'waiting-for-restart') && (
-                <div className="text-center mbc-3">
-                    <h1>{winner === playerId ? 'You won' : 'You lost'}</h1>
-                    {(gameStatus !== 'waiting-for-restart' ||
-                        (gameStatus === 'waiting-for-restart' &&
-                            playerRestarting !== playerId)) && (
-                        <button
-                            onClick={() =>
-                                playAgain(roomId, playerId, gameStatus)
-                            }>
-                            Play again
-                        </button>
-                    )}
-
-                    {gameStatus === 'waiting-for-restart' &&
-                        playerRestarting !== playerId && (
-                            <p>
-                                You've been challenged to another match. Click
-                                the button above to start!
-                            </p>
-                        )}
-
-                    {gameStatus === 'waiting-for-restart' &&
-                        playerRestarting === playerId && (
-                            <p>
-                                Waiting for your opponent to accept the
-                                restart...
-                            </p>
-                        )}
-                    <p>
-                        Or <ReturnToLobbyLink roomId={roomId} />
-                    </p>
-                </div>
+                <SomeoneWonMessage
+                    playerIsWinner={winner === playerId}
+                    gameStatus={gameStatus}
+                    playerIsRestarting={playerRestarting === playerId}
+                    roomId={roomId}
+                    playerId={playerId}
+                />
             )}
 
-            {(gameStatus === 'playing' ||
-                gameStatus === 'someone-won' ||
-                gameStatus === 'waiting-for-restart') && (
-                <>
-                    {gameStatus === 'playing' && (
-                        <h1 className="text-center text-bold">
-                            {playerTurn === playerId
-                                ? "It's your turn"
-                                : "It's your opponent's turn"}
-                        </h1>
-                    )}
-                    <Table
-                        isPlayerTurn={
-                            gameStatus === 'playing' && playerTurn === playerId
-                        }
-                        cells={cells}
-                        onCellClick={markCell}
-                        winningCells={winningCells}
-                        winningType={winningType}
-                    />
-                </>
+            {gameStatus === 'playing' && (
+                <PlayerTurnMessage isPlayersTurn={playerTurn === playerId} />
+            )}
+
+            {gameStatus !== 'waiting-for-opponent' && (
+                <Table
+                    isPlayerTurn={
+                        gameStatus === 'playing' && playerTurn === playerId
+                    }
+                    cells={cells}
+                    onCellClick={cellIndex =>
+                        markCell(cellIndex, cells, roomId, playerId)
+                    }
+                    winningCells={winningCells}
+                    winningType={winningType}
+                />
             )}
 
             {gameStatus === 'waiting-for-opponent' && (
-                <>
-                    <h1>Room id: {roomId}</h1>
-                    <p>Share the room id with a friend to play together</p>
-                    <p>
-                        Or <ReturnToLobbyLink roomId={roomId} />
-                    </p>
-                </>
+                <WaitingForOpponentMessage roomId={roomId} />
             )}
         </>
     )
