@@ -18,7 +18,7 @@ export const getRoomData = async ({ params }) => {
     const roomId = localStorage.getItem('roomId')
 
     const playerHasAnId = roomId === params.roomId && playerId
-    if (playerHasAnId) return { playerId }
+    if (playerHasAnId) return null
 
     if (roomData.playersCount >= 2) throw new Error('Room is full')
 
@@ -29,11 +29,11 @@ export const getRoomData = async ({ params }) => {
     const gameStatus = playersCount === 2 ? 'playing' : 'waiting-for-opponent'
     await setDoc(roomRef, { playersCount, gameStatus }, { merge: true })
 
-    return { playerId: playersCount }
+    return null
 }
 
 export default function PlayMultiPlayerPage() {
-    const { playerId } = useLoaderData()
+    const [playerId, setPlayerId] = useState(+localStorage.getItem('playerId'))
     const { roomId } = useParams()
 
     const [cells, setCells] = useState([])
@@ -43,11 +43,9 @@ export default function PlayMultiPlayerPage() {
     const [playerRestarting, setPlayerRestarting] = useState(null)
     const [winningCells, setWinningCells] = useState([])
     const [winningType, setWinningType] = useState(null)
+    const [, setPlayersCount] = useState(null)
 
     useEffect(() => {
-        localStorage.setItem('playerId', playerId)
-        localStorage.setItem('roomId', roomId)
-
         const roomRef = doc(roomsCollection, roomId)
         const unsubscribe = onSnapshot(roomRef, roomSnap => {
             const roomData = roomSnap.data()
@@ -59,6 +57,19 @@ export default function PlayMultiPlayerPage() {
             setWinningCells(roomData.winningCells)
             setWinningType(roomData.winningType)
             setPlayerRestarting(roomData.playerRestarting)
+
+            setPlayersCount(playersCount => {
+                if (
+                    roomData.gameStatus === 'waiting-for-opponent' &&
+                    playersCount > roomData.playersCount &&
+                    playerId === 2
+                ) {
+                    localStorage.setItem('playerId', 1)
+                    setPlayerId(1)
+                }
+
+                return roomData.playersCount
+            })
         })
 
         return unsubscribe
