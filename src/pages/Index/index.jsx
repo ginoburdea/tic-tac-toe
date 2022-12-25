@@ -1,5 +1,5 @@
 import { doc, setDoc } from 'firebase/firestore'
-import '@/assets/utils.scss'
+import '@/assets/styles/utils.scss'
 import { roomsCollection } from '@/utils/firebase'
 import {
     Form,

@@ -1,4 +1,4 @@
-import './assets/App.scss'
+import './assets/styles/App.scss'
 import { Outlet } from 'react-router-dom'
 
 export default function App() {
