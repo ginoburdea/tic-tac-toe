@@ -5,9 +5,9 @@ import Table from '@/components/Table'
 import { roomsCollection } from '@/utils/firebase'
 import markCell from '@/utils/markCell'
 import playAgain from './playAgain'
-import { PlayerTurnMessage } from './PlayerTurnMessage'
-import SomeoneWonMessage from './SomeoneWonMessage'
-import { WaitingForOpponentMessage } from './WaitingForOpponentMessage'
+import PlayerTurnMessage from '@/components/PlayerTurnMessage'
+import SomeoneWonMessage from '@/components/SomeoneWonMessage'
+import WaitingForOpponentMessage from './WaitingForOpponentMessage'
 
 export const getRoomData = async ({ params }) => {
     const roomRef = doc(roomsCollection, params.roomId)

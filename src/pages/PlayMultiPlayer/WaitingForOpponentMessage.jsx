@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types'
 import ReturnToLobbyLink from '@/components/ReturnToLobbyLink'
 
-export function WaitingForOpponentMessage({ roomId }) {
+export default function WaitingForOpponentMessage({ roomId }) {
     return (
         <>
             <h1>Room id: {roomId}</h1>

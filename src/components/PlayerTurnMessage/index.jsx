@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types'
 
-export function PlayerTurnMessage({ isPlayersTurn }) {
+export default function PlayerTurnMessage({ isPlayersTurn }) {
     return (
         <h1 className="text-center text-bold">
             {isPlayersTurn ? "It's your turn" : "It's your opponent's turn"}

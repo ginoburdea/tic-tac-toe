@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import Table from '@/components/Table'
 import genGameData from '@/utils/genGameData'
 import getWinningInfo from '@/utils/getWinningInfo'
-import { PlayerTurnMessage } from '../PlayMultiPlayer/PlayerTurnMessage'
-import SomeoneWonMessage from '../PlayMultiPlayer/SomeoneWonMessage'
+import PlayerTurnMessage from '@/components/PlayerTurnMessage'
+import SomeoneWonMessage from '@/components/SomeoneWonMessage'
 
 export default function PlaySinglePlayerPage() {
     const { gameData } = genGameData()
