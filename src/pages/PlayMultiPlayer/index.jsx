@@ -81,6 +81,7 @@ export default function PlayMultiPlayerPage() {
                 gameStatus === 'waiting-for-restart') && (
                 <SomeoneWonMessage
                     playerIsWinner={winner === playerId}
+                    isTie={winningType === 'tie'}
                     gameStatus={gameStatus}
                     playerIsRestarting={playerRestarting === playerId}
                     roomId={roomId}

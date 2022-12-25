@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import genGameData from '../../utils/genGameData'
 import { doc, setDoc } from 'firebase/firestore'
 import { roomsCollection } from '../../utils/firebase'
+import { useMemo } from 'react'
 
 const playAgain = async (roomId, playerId, gameStatus) => {
     const { gameData } = genGameData()
@@ -26,14 +27,21 @@ const playAgain = async (roomId, playerId, gameStatus) => {
 
 export default function SomeoneWonMessage({
     playerIsWinner,
+    isTie,
     gameStatus,
     playerIsRestarting,
     roomId,
     playerId,
 }) {
+    const message = useMemo(
+        () =>
+            !isTie ? (playerIsWinner ? 'You won' : 'You lost') : 'Nobody won',
+        [isTie, playerIsWinner]
+    )
+
     return (
         <div className="text-center mbc-3">
-            <h1>{playerIsWinner ? 'You won' : 'You lost'}</h1>
+            <h1>{message}</h1>
 
             {(gameStatus !== 'waiting-for-restart' ||
                 (gameStatus === 'waiting-for-restart' &&
@@ -63,6 +71,7 @@ export default function SomeoneWonMessage({
 
 SomeoneWonMessage.propTypes = {
     playerIsWinner: PropTypes.bool.isRequired,
+    isTie: PropTypes.bool.isRequired,
     gameStatus: PropTypes.string.isRequired,
     playerIsRestarting: PropTypes.bool.isRequired,
     roomId: PropTypes.string.isRequired,
