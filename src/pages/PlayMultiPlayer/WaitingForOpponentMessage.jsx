@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types'
-import ReturnToLobbyLink from '../../components/ReturnToLobbyLink'
+import ReturnToLobbyLink from '@/components/ReturnToLobbyLink'
 
 export function WaitingForOpponentMessage({ roomId }) {
     return (

@@ -1,6 +1,6 @@
-import genGameData from '../../utils/genGameData'
+import genGameData from '@/utils/genGameData'
 import { doc, setDoc } from 'firebase/firestore'
-import { roomsCollection } from '../../utils/firebase'
+import { roomsCollection } from '@/utils/firebase'
 
 export default async function playAgain(roomId, playerId, gameStatus) {
     const { gameData } = genGameData()

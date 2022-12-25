@@ -1,15 +1,14 @@
 import { doc, setDoc } from 'firebase/firestore'
-import '../../assets/utils.scss'
-import { roomsCollection } from '../../utils/firebase'
+import '@/assets/utils.scss'
+import { roomsCollection } from '@/utils/firebase'
 import {
     Form,
     Link,
     redirect,
-    useLocation,
     useNavigate,
     useSearchParams,
 } from 'react-router-dom'
-import genGameData from '../../utils/genGameData'
+import genGameData from '@/utils/genGameData'
 
 const playSinglePlayer = async () => {}
 

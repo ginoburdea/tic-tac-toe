@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router'
 import PropTypes from 'prop-types'
 import { doc, increment, setDoc } from '@firebase/firestore'
-import { roomsCollection } from '../../utils/firebase'
-import genGameData from '../../utils/genGameData'
+import { roomsCollection } from '@/utils/firebase'
+import genGameData from '@/utils/genGameData'
 
 export default function ReturnToLobbyLink({ roomId }) {
     const navigate = useNavigate()

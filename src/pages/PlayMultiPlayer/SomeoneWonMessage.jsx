@@ -1,4 +1,4 @@
-import ReturnToLobbyLink from '../../components/ReturnToLobbyLink'
+import ReturnToLobbyLink from '@/components/ReturnToLobbyLink'
 import PropTypes from 'prop-types'
 import { useMemo } from 'react'
 
