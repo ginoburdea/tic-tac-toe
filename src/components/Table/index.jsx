@@ -1,11 +1,11 @@
-import './index.scss'
-import '@/assets/styles/utils.scss'
-import { ReactComponent as XIcon } from '@/assets/images/x.svg'
-import { ReactComponent as OIcon } from '@/assets/images/o.svg'
-import { ReactComponent as LineIcon } from '@/assets/images/line.svg'
 import { ReactComponent as DiagonalLineIcon } from '@/assets/images/diagonalLine.svg'
+import { ReactComponent as LineIcon } from '@/assets/images/line.svg'
+import { ReactComponent as OIcon } from '@/assets/images/o.svg'
+import { ReactComponent as XIcon } from '@/assets/images/x.svg'
+import '@/assets/styles/utils.scss'
 import PropTypes from 'prop-types'
 import { useMemo } from 'react'
+import './index.scss'
 
 export default function Table({
     isPlayerTurn,
@@ -47,7 +47,7 @@ export default function Table({
                 CellLineIcon,
             }
         })
-    }, [cells])
+    }, [cells, winningCells])
 
     return (
         <div className="table gap-1">

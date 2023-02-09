@@ -1,5 +1,12 @@
 import { initializeApp } from 'firebase/app'
-import { collection, getFirestore } from 'firebase/firestore'
+import { connectAuthEmulator, getAuth } from 'firebase/auth'
+import {
+    collection,
+    connectFirestoreEmulator,
+    getFirestore,
+} from 'firebase/firestore'
+import { connectFunctionsEmulator, getFunctions } from 'firebase/functions'
+import buildCloudFunction from './buildCloudFunction'
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -11,5 +18,21 @@ const firebaseConfig = {
 }
 
 const app = initializeApp(firebaseConfig)
+
 export const firestore = getFirestore(app)
 export const roomsCollection = collection(firestore, 'rooms')
+
+export const auth = getAuth(app)
+
+export const functions = getFunctions(app)
+export const cloudLeaveRoom = buildCloudFunction(functions, 'leaveRoom')
+export const cloudCreateRoom = buildCloudFunction(functions, 'createRoom')
+export const cloudJoinRoom = buildCloudFunction(functions, 'joinRoom')
+export const cloudMakeAMove = buildCloudFunction(functions, 'makeAMove')
+export const cloudPlayAgain = buildCloudFunction(functions, 'playAgain')
+
+if (import.meta.env.DEV) {
+    connectFirestoreEmulator(firestore, 'localhost', 8080)
+    connectAuthEmulator(auth, 'http://localhost:9090')
+    connectFunctionsEmulator(functions, 'localhost', 7070)
+}

@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
-import Table from '@/components/Table'
-import genGameData from '@/utils/genGameData'
-import getWinningInfo from '@/utils/getWinningInfo'
 import PlayerTurnMessage from '@/components/PlayerTurnMessage'
 import SomeoneWonMessage from '@/components/SomeoneWonMessage'
+import Table from '@/components/Table'
+import { genGameData, getWinningInfo } from 'tic-tac-toe-common'
+
+import { useEffect, useState } from 'react'
 
 export default function PlaySinglePlayerPage() {
     const { gameData } = genGameData()
@@ -15,7 +15,6 @@ export default function PlaySinglePlayerPage() {
     const [winner, setWinner] = useState(gameData.winner)
     const [winningCells, setWinningCells] = useState(gameData.winningCells)
     const [winningType, setWinningType] = useState(gameData.winningType)
-    const [lastUpdate, setLastUpdate] = useState(null)
 
     const markCell = (cellIndex, playerId) => {
         setCells(cells => {
@@ -54,26 +53,19 @@ export default function PlaySinglePlayerPage() {
     }
 
     useEffect(() => {
-        if (playerTurn === 1) return
-        makeBotMarkCell()
-    }, [])
-
-    useEffect(() => {
-        if (!lastUpdate || gameStatus !== 'playing') return
-        makeBotMarkCell()
-    }, [lastUpdate])
-
-    useEffect(() => {
         for (const id of [1, 2]) {
             const { winningCells, winningType } = getWinningInfo(cells, id)
             if (winningType) {
+                setGameStatus('someone-won')
                 setWinner(id)
                 setWinningCells(winningCells)
                 setWinningType(winningType)
-                setGameStatus('someone-won')
                 return
             }
         }
+
+        if (playerTurn === playerId || gameStatus !== 'playing') return
+        makeBotMarkCell()
     }, [cells])
 
     return (
@@ -99,7 +91,6 @@ export default function PlaySinglePlayerPage() {
                 cells={cells}
                 onCellClick={cellIndex => {
                     markCell(cellIndex, playerId)
-                    setLastUpdate(Date.now())
                 }}
                 winningCells={winningCells}
                 winningType={winningType}

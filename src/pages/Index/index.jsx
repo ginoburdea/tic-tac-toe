@@ -1,6 +1,5 @@
-import { doc, setDoc } from 'firebase/firestore'
 import '@/assets/styles/utils.scss'
-import { roomsCollection } from '@/utils/firebase'
+import { cloudCreateRoom, roomsCollection } from '@/utils/firebase'
 import {
     Form,
     Link,
@@ -8,9 +7,6 @@ import {
     useNavigate,
     useSearchParams,
 } from 'react-router-dom'
-import genGameData from '@/utils/genGameData'
-
-const playSinglePlayer = async () => {}
 
 export const indexPageAction = async ({ request }) => {
     const formData = await request.formData()
@@ -26,11 +22,10 @@ export default function IndexPage() {
     const navigate = useNavigate()
 
     const createRoom = async () => {
-        const { roomId, gameData } = genGameData()
-
-        await setDoc(doc(roomsCollection, roomId), gameData)
-
-        navigate(`/play-multi-player/${roomId}`)
+        const { data } = await cloudCreateRoom({
+            roomsCollection: roomsCollection.path,
+        })
+        navigate(`/play-multi-player/${data.roomId}`)
     }
 
     return (
@@ -40,7 +35,7 @@ export default function IndexPage() {
             <div className="mbc-2">
                 <h3>Play single-player</h3>
                 <Link to={'/play-single-player'}>
-                    <button onClick={playSinglePlayer}>Play now</button>
+                    <button>Play now</button>
                 </Link>
             </div>
 

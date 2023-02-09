@@ -24,9 +24,6 @@ export default function SomeoneWonMessage({
                 (gameStatus === 'waiting-for-restart' &&
                     !playerIsRestarting)) && (
                 <button onClick={handleRestart}>Play again</button>
-                // <button onClick={() => playAgain(roomId, playerId, gameStatus)}>
-                //     Play again
-                // </button>
             )}
 
             {gameStatus === 'waiting-for-restart' && !playerIsRestarting && (

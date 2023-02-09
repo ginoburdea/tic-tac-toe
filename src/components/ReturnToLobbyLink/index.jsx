@@ -1,27 +1,13 @@
-import { useNavigate } from 'react-router'
+import { cloudLeaveRoom } from '@/utils/firebase'
+import handleFirebaseError from '@/utils/handleFirebaseError'
 import PropTypes from 'prop-types'
-import { doc, increment, setDoc } from '@firebase/firestore'
-import { roomsCollection } from '@/utils/firebase'
-import genGameData from '@/utils/genGameData'
+import { useNavigate } from 'react-router'
 
 export default function ReturnToLobbyLink({ roomId }) {
     const navigate = useNavigate()
 
     const returnToLobby = async () => {
-        const roomRef = doc(roomsCollection, roomId)
-
-        const { gameData } = genGameData()
-        // eslint-disable-next-line
-        const { playersCount, playerTurn, ...newGameData } = gameData
-
-        await setDoc(
-            roomRef,
-            {
-                ...newGameData,
-                playersCount: increment(-1),
-            },
-            { merge: true }
-        )
+        await cloudLeaveRoom({ roomId }).catch(handleFirebaseError)
 
         localStorage.removeItem('roomId')
         localStorage.removeItem('playerId')

@@ -1,40 +1,35 @@
-import { doc, getDoc, onSnapshot, setDoc } from 'firebase/firestore'
-import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import Table from '@/components/Table'
-import { roomsCollection } from '@/utils/firebase'
-import markCell from '@/utils/markCell'
-import playAgain from './playAgain'
 import PlayerTurnMessage from '@/components/PlayerTurnMessage'
 import SomeoneWonMessage from '@/components/SomeoneWonMessage'
+import Table from '@/components/Table'
+import {
+    auth,
+    cloudJoinRoom,
+    cloudMakeAMove,
+    cloudPlayAgain,
+    roomsCollection,
+} from '@/utils/firebase'
+import handleFirebaseError from '@/utils/handleFirebaseError'
+import { doc, onSnapshot } from 'firebase/firestore'
+import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import WaitingForOpponentMessage from './WaitingForOpponentMessage'
 
 export const getRoomData = async ({ params }) => {
-    const roomRef = doc(roomsCollection, params.roomId)
-    const roomSnap = await getDoc(roomRef)
-    if (!roomSnap.exists()) throw new Error('Room not found')
+    const { data } = await cloudJoinRoom({ roomId: params.roomId }).catch(
+        handleFirebaseError
+    )
 
-    const roomData = roomSnap.data()
-    const playerId = +localStorage.getItem('playerId')
-    const roomId = localStorage.getItem('roomId')
-
-    const playerHasAnId = roomId === params.roomId && playerId
-    if (playerHasAnId) return null
-
-    if (roomData.playersCount >= 2) throw new Error('Room is full')
-
-    localStorage.setItem('playerId', roomData.playersCount + 1)
+    localStorage.setItem('playerId', data.playerId)
     localStorage.setItem('roomId', params.roomId)
-
-    const playersCount = roomData.playersCount + 1
-    const gameStatus = playersCount === 2 ? 'playing' : 'waiting-for-opponent'
-    await setDoc(roomRef, { playersCount, gameStatus }, { merge: true })
-
     return null
 }
 
 export default function PlayMultiPlayerPage() {
     const [playerId, setPlayerId] = useState(+localStorage.getItem('playerId'))
+    useEffect(() => {
+        localStorage.setItem('playerId', playerId)
+    }, [playerId])
+
     const { roomId } = useParams()
 
     const [cells, setCells] = useState([])
@@ -58,19 +53,8 @@ export default function PlayMultiPlayerPage() {
             setWinningCells(roomData.winningCells)
             setWinningType(roomData.winningType)
             setPlayerRestarting(roomData.playerRestarting)
-
-            setPlayersCount(playersCount => {
-                if (
-                    roomData.gameStatus === 'waiting-for-opponent' &&
-                    playersCount > roomData.playersCount &&
-                    playerId === 2
-                ) {
-                    localStorage.setItem('playerId', 1)
-                    setPlayerId(1)
-                }
-
-                return roomData.playersCount
-            })
+            setPlayerId(roomData.players.indexOf(auth.currentUser.uid) + 1)
+            setPlayersCount(roomData.playersCount)
         })
 
         return unsubscribe
@@ -86,8 +70,10 @@ export default function PlayMultiPlayerPage() {
                     gameStatus={gameStatus}
                     playerIsRestarting={playerRestarting === playerId}
                     roomId={roomId}
-                    handleRestart={() =>
-                        playAgain(roomId, playerId, gameStatus)
+                    handleRestart={async () =>
+                        await cloudPlayAgain({ roomId }).catch(
+                            handleFirebaseError
+                        )
                     }
                 />
             )}
@@ -102,8 +88,10 @@ export default function PlayMultiPlayerPage() {
                         gameStatus === 'playing' && playerTurn === playerId
                     }
                     cells={cells}
-                    onCellClick={cellIndex =>
-                        markCell(cellIndex, cells, roomId, playerId)
+                    onCellClick={async cellIndex =>
+                        await cloudMakeAMove({ roomId, cellIndex }).catch(
+                            handleFirebaseError
+                        )
                     }
                     winningCells={winningCells}
                     winningType={winningType}
