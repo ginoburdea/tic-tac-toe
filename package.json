@@ -5,7 +5,7 @@
     "type": "module",
     "scripts": {
         "dev": "concurrently --kill-others --names emulator,frontend --prefix-colors blue,green \"firebase emulators:start\" \"vite --host\"",
-        "build": "dotenv-cli vite build",
+        "build": "dotenv vite build",
         "preview": "concurrently --kill-others --names emulator,frontend --prefix-colors blue,green \"firebase emulators:start\" \"vite preview\"",
         "lint": "eslint **/*.{js,jsx} --fix",
         "format": "prettier --write --ignore-unknown .",
